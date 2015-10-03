@@ -1,11 +1,11 @@
  (function (enyo, scope) {
 	/**
 	* This is a [delegate]{@glossary delegate} (strategy) used by {@link enyo.DataGridList}
-	* for vertically-oriented lists. This is used by all lists for this strategy; it does
+	* for horizontaly-oriented lists. This is used by all lists for this strategy; it does
 	* not get copied, but is called directly from the list. It is only available to
 	* `enyo.DataGridList`.
 	*
-	* @name enyo.DataGridList.delegates.verticalGrid
+	* @name enyo.DataGridList.delegates.horizontalGrid
 	* @type Object
 	* @private
 	*/
@@ -192,6 +192,7 @@
 		*/
 		childSize: function (list) {
 			// currently DataGridList is only vertical
+			//TODO: check to see how this effect horizontal
 			/*jshint -W093 */
 			return (list.childSize = (list.tileHeight + list.spacing));
 		},
@@ -228,7 +229,7 @@
 						'width: '  + Math.round(w) +                 'px; ' +
 						'height: ' + Math.round(h) +                 'px;'
 					);
-					if (Math.round(s + (r  * (h+s))) + (h+s) > list.boundsCache.height) {
+					if (r + 1 >= list.rows || Math.round(s + (r  * (h+s))) + (h+s) > list.boundsCache.height) {
 						r = 0;
 						col++;
 					}
