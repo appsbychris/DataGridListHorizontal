@@ -27,6 +27,11 @@
 			// and that we have data to render at this point, otherwise we don't
 			// want to do any more initialization
 			if (list.collection && list.collection.length) { this.reset(list); }
+			if (list.minRows) {
+				list.$.scroller.set("horizontal", "auto");
+				list.$.scroller.set("vertical", "auto");
+				list.$.active.applyStyle("overflow", "visible");
+			}
 		},
 		
 		/**
@@ -54,7 +59,7 @@
 			var n  = page.node || page.hasNode(),
 				a  = n.children.length,
 				mx = list.metrics.pages[page.index], s;
-			s = (Math.floor(a/list.rows)+(a%list.rows? 1: 0))*(list.tileHeight+list.spacing);
+			s = list.rows*(list.tileHeight+list.spacing);
 			n.style.height = s + 'px';
 			mx.height = s;
 			return s;
@@ -82,6 +87,15 @@
 			var s  = list.boundsCache.width,
 				n  = page.node || page.hasNode(),
 				mx = list.metrics.pages[page.index];
+			var colW = Math.floor(s / (list.tileWidth + list.spacing));
+			var a  = n.children.length;
+			var cpp = colW * list.rows;
+			if (a < cpp) {
+				s = (a/list.rows) * (list.tileWidth + list.spacing);
+			}
+			else {
+				s = (list.tileWidth + list.spacing) * colW;
+			}
 			n.style.width = s + 'px';
 			mx.width = s;
 			return s;
@@ -112,9 +126,9 @@
 				mh  = list.minHeight;
 			// the number of columns is the ratio of the available width minus the spacing
 			// by the minimum tile width plus the spacing
-			list.rows    = Math.max(Math.floor((h-s) / (mh+s)), 1);
-			list.tileHeight =((h-(s*(list.rows+1)))/list.rows);
-			list.tileWidth  = w - ((m + s + s) * (Math.floor(w / (m + s + s)) - 1));
+			list.rows    = list.minRows || Math.max(Math.floor((h-s) / (mh+s)), 1);
+			list.tileHeight = Math.max(mh, ((h-(s*(list.rows+1)))/list.rows));
+			list.tileWidth  = m;
 		
 		
 			// unfortunately this forces us to recalculate the number of controls that can
@@ -183,7 +197,7 @@
 		*/
 		calculateControlsPerPage: enyo.inherit(function (sup) {
 			return function(list) {
-				return sup.apply(this, arguments) * list.rows;
+				return Math.floor(list.boundsCache.width / (list.tileWidth + list.spacing)) * list.rows;
 			};
 		}),
 
@@ -229,7 +243,7 @@
 						'width: '  + Math.round(w) +                 'px; ' +
 						'height: ' + Math.round(h) +                 'px;'
 					);
-					if (r + 1 >= list.rows || Math.round(s + (r  * (h+s))) + (h+s) > list.boundsCache.height) {
+					if (r + 1 >= list.rows) {
 						r = 0;
 						col++;
 					}
@@ -262,6 +276,7 @@
 				n.style[ss] = this[ss](list) + 'px';
 				list.$.scroller.remeasure();
 			}
+			
 		},
 		
 		/**
